@@ -96,9 +96,16 @@ class Scheduler:
         self.owner = owner
 
     def sort_by_time(self, tasks: Optional[List[Task]] = None) -> List[Task]:
-        """Sort tasks by due_time ('HH:MM')."""
+        """Sort tasks by due_time ('HH:MM'). Invalid times are placed at the end."""
         tasks = tasks if tasks is not None else self.owner.get_all_tasks()
-        return sorted(tasks, key=lambda task: datetime.strptime(task.due_time, "%H:%M"))
+
+        def task_sort_key(task: Task):
+            try:
+                return datetime.strptime(task.due_time, "%H:%M")
+            except ValueError:
+                return datetime.max
+
+        return sorted(tasks, key=task_sort_key)
 
     def filter_tasks(self, completed: Optional[bool] = None, pet_name: Optional[str] = None) -> List[Task]:
         """Filter tasks by completion status and/or pet name."""
